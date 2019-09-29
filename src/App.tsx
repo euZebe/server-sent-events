@@ -1,26 +1,37 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import logo from "./logo.svg";
+import "./App.css";
 
 const App: React.FC = () => {
+  const [lastEvent, setLastEvent] = useState<string>();
+  const [events, setEvents] = useState<string[]>([]);
+
+  useEffect(() => {
+    const eventSource = new EventSource("//localhost:8100/events", {
+      withCredentials: true
+    });
+    eventSource.onmessage = event => {
+      setLastEvent(event.data);
+    };
+    return () => eventSource.close();
+  }, []);
+
+  useEffect(() => {
+    if (lastEvent) setEvents([...events, lastEvent]);
+  }, [lastEvent]);
+
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        {events.map((e, index) => (
+          <div key={e}>
+            #{index + 1}: {e}
+          </div>
+        ))}
       </header>
     </div>
   );
-}
+};
 
 export default App;
