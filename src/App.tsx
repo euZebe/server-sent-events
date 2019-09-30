@@ -3,22 +3,20 @@ import logo from "./logo.svg";
 import "./App.css";
 
 const App: React.FC = () => {
-  const [lastEvent, setLastEvent] = useState<string>();
   const [events, setEvents] = useState<string[]>([]);
 
   useEffect(() => {
-    const eventSource = new EventSource("//localhost:8100/events", {
-      withCredentials: true
-    });
+    const eventSource = new EventSource("//localhost:8100/events");
     eventSource.onmessage = event => {
-      setLastEvent(event.data);
+      if (event.data === "end") {
+        console.log("unsubscribe from SSE");
+        eventSource.close();
+      } else {
+        setEvents(allEvents => [...allEvents, event.data]);
+      }
     };
     return () => eventSource.close();
   }, []);
-
-  useEffect(() => {
-    if (lastEvent) setEvents([...events, lastEvent]);
-  }, [lastEvent]);
 
   return (
     <div className="App">
